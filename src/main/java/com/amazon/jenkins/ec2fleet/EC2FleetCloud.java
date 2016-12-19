@@ -81,6 +81,7 @@ public class EC2FleetCloud extends Cloud
     private final Integer minSize;
     private final Integer maxSize;
     private final Integer numExecutors;
+    private final boolean scaleExecutorsByWeight;
 
 
     private transient @Nonnull FleetStateStats statusCache;
@@ -115,7 +116,8 @@ public class EC2FleetCloud extends Cloud
                          final Integer idleMinutes,
                          final Integer minSize,
                          final Integer maxSize,
-                         final Integer numExecutors) {
+                         final Integer numExecutors,
+                         final boolean scaleExecutorsByWeight) {
         super(FLEET_CLOUD_ID);
         initCaches();
         this.credentialsId = credentialsId;
@@ -129,6 +131,7 @@ public class EC2FleetCloud extends Cloud
         this.minSize = minSize;
         this.maxSize = maxSize;
         this.numExecutors = numExecutors;
+        this.scaleExecutorsByWeight = scaleExecutorsByWeight;
     }
 
     private Object readResolve() {
@@ -137,7 +140,7 @@ public class EC2FleetCloud extends Cloud
     }
 
     private void initCaches() {
-        statusCache = new FleetStateStats(fleet, 0, "Initializing", Collections.<String>emptySet(), labelString);
+        statusCache = new FleetStateStats(fleet, 0, "Initializing", Collections.<String>emptySet(), Collections.<String, Double>emptyMap(), labelString);
         plannedNodesCache = new HashSet<NodeProvisioner.PlannedNode>();
         fleetInstancesCache = new HashSet<String>();
         dyingFleetInstancesCache = new HashSet<String>();
@@ -185,6 +188,10 @@ public class EC2FleetCloud extends Cloud
 
     public Integer getNumExecutors() {
         return numExecutors;
+    }
+
+    public boolean isScaleExecutorsByWeight() {
+        return scaleExecutorsByWeight;
     }
 
     public String getJvmSettings() {
@@ -420,8 +427,17 @@ public class EC2FleetCloud extends Cloud
         if (address == null)
             return; // Wait some more...
 
+        String numExecutors;
+        if (scaleExecutorsByWeight) {
+            Double instanceTypeWeight = statusCache.getInstanceTypeWeight(instance.getInstanceType());
+            Double instanceWeight = Math.ceil(this.numExecutors * instanceTypeWeight);
+            numExecutors = String.valueOf(instanceWeight.intValue());
+        } else {
+            numExecutors = String.valueOf(this.numExecutors);
+        }
+
         final FleetNode slave = new FleetNode(instanceId, "Fleet slave for" + instanceId,
-                fsRoot, this.numExecutors.toString(), Node.Mode.NORMAL, this.labelString, new ArrayList<NodeProperty<?>>(),
+                fsRoot, numExecutors, Node.Mode.NORMAL, this.labelString, new ArrayList<NodeProperty<?>>(),
                 FLEET_CLOUD_ID, computerConnector.launch(address, TaskListener.NULL));
 
         // Initialize our retention strategy
