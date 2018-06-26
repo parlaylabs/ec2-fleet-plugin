@@ -27,7 +27,7 @@ public class FleetNode extends Slave implements EphemeralNode
     private static final long LAUNCH_TIMEOUT_MS=1000*1000L;
     private final String cloudName;
 
-    public FleetNode(final String name, final String nodeDescription, final String remoteFS, final String numExecutors, final Mode mode, final String label,
+    public FleetNode(final String name, final String nodeDescription, final String remoteFS, final int numExecutors, final Mode mode, final String label,
                      final List<? extends NodeProperty<?>> nodeProperties, final String cloudName, ComputerLauncher launcher) throws IOException, Descriptor.FormException {
         super(name, nodeDescription, remoteFS, numExecutors, mode, label,
                 launcher, RetentionStrategy.NOOP, nodeProperties);

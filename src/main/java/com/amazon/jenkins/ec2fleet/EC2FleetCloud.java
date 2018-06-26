@@ -427,13 +427,13 @@ public class EC2FleetCloud extends Cloud
         if (address == null)
             return; // Wait some more...
 
-        String numExecutors;
+        int numExecutors;
         if (scaleExecutorsByWeight) {
             Double instanceTypeWeight = statusCache.getInstanceTypeWeight(instance.getInstanceType());
             Double instanceWeight = Math.ceil(this.numExecutors * instanceTypeWeight);
-            numExecutors = String.valueOf(instanceWeight.intValue());
+            numExecutors = instanceWeight.intValue();
         } else {
-            numExecutors = String.valueOf(this.numExecutors);
+            numExecutors = this.numExecutors;
         }
 
         final FleetNode slave = new FleetNode(instanceId, "Fleet slave for" + instanceId,
