@@ -3,6 +3,7 @@ package com.amazon.jenkins.ec2fleet;
 import com.amazon.jenkins.ec2fleet.cloud.FleetNode;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.DescribeRegionsResult;
@@ -528,15 +529,13 @@ public class EC2FleetCloud extends Cloud
     }
 
     private static AmazonEC2 connect(final String credentialsId, final String region) {
-
         final AmazonWebServicesCredentials credentials = AWSCredentialsHelper.getCredentials(credentialsId, Jenkins.getInstance());
-        final AmazonEC2Client client =
-                credentials != null ?
-                        new AmazonEC2Client(credentials) :
-                        new AmazonEC2Client();
-        if (region != null)
-            client.setEndpoint("https://ec2." + region + ".amazonaws.com/");
-        return client;
+        AmazonEC2ClientBuilder builder = AmazonEC2Client.builder()
+            .withCredentials(credentials);
+        if (region != null) {
+            builder.withRegion(region);
+        }
+        return builder.build();
     }
 
 
