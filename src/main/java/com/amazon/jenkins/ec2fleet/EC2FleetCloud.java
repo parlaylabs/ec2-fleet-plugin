@@ -244,6 +244,7 @@ public class EC2FleetCloud extends Cloud
 
         final FleetStateStats stats=updateStatus();
         final int maxAllowed = this.getMaxSize();
+        LOGGER.log(Level.FINE, "Fleet Status: numDesired=" + stats.getNumDesired() + ", state=" + stats.getState());
 
         if (stats.getNumDesired() >= maxAllowed || !"active".equals(stats.getState()))
             return Collections.emptyList();
@@ -255,6 +256,7 @@ public class EC2FleetCloud extends Cloud
         // https://stackoverflow.com/a/21830188/877024
         final int weightedExcessWorkload = (excessWorkload + numExecutors - 1) / numExecutors;
         int targetCapacity = stats.getNumDesired() + weightedExcessWorkload;
+        LOGGER.log(Level.FINE, "Fleet Target Capacity: " + targetCapacity);
 
         if (targetCapacity > maxAllowed)
             targetCapacity = maxAllowed;
@@ -436,6 +438,8 @@ public class EC2FleetCloud extends Cloud
         } else {
             numExecutors = this.numExecutors;
         }
+
+        LOGGER.log(Level.FINE, "Adding salve " + instanceId + " (executors: " + numExecutors + ")");
 
         final FleetNode slave = new FleetNode(instanceId, "Fleet slave for " + this.name + " (" + instanceId + ")",
                 fsRoot, numExecutors, Node.Mode.NORMAL, this.labelString, new ArrayList<NodeProperty<?>>(),
