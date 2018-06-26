@@ -437,7 +437,7 @@ public class EC2FleetCloud extends Cloud
             numExecutors = this.numExecutors;
         }
 
-        final FleetNode slave = new FleetNode(instanceId, "Fleet slave for " + instanceId,
+        final FleetNode slave = new FleetNode(instanceId, "Fleet slave for " + this.name + " (" + instanceId + ")",
                 fsRoot, numExecutors, Node.Mode.NORMAL, this.labelString, new ArrayList<NodeProperty<?>>(),
                 this.name, computerConnector.launch(address, TaskListener.NULL));
 
